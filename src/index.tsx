@@ -8,9 +8,28 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import { theme } from "~/theme";
 
+const handleErrors = (error: unknown): void => {
+  if (error instanceof Error) {
+    const response = (error as any).response;
+
+    // Check for HTTP status codes 401 and 403
+    if (response?.status === 401 || response?.status === 403) {
+      alert("Authorization error. Please verify you credentials.");
+    }
+  }
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { refetchOnWindowFocus: false, retry: false, staleTime: Infinity },
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: false,
+      staleTime: Infinity,
+      onError: handleErrors, // Set the error handler for queries
+    },
+    mutations: {
+      onError: handleErrors, // Set the error handler for mutations
+    },
   },
 });
 

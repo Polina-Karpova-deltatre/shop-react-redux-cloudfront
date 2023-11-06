@@ -1,7 +1,8 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import React from "react";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import { useQuery } from "react-query";
 
 type CSVFileImportProps = {
   url: string;
@@ -25,12 +26,16 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
 
   const uploadFile = async () => {
     console.log("uploadFile to", url);
+    const authorization_token = localStorage.getItem("authorization_token");
 
     // Get the presigned URL
     if (file) {
       const response = await axios({
         method: "GET",
         url,
+        headers: {
+          Authorization: `Basic ${authorization_token}`,
+        },
         params: {
           name: encodeURIComponent(file.name),
         },
@@ -45,6 +50,16 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
       setFile(undefined);
     }
   };
+
+  const { data, refetch } = useQuery<any, AxiosError>(
+    "uploadFile",
+    uploadFile,
+    {
+      refetchOnWindowFocus: false,
+      enabled: false, // disable this query from automatically running
+    }
+  );
+
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
@@ -55,7 +70,7 @@ export default function CSVFileImport({ url, title }: CSVFileImportProps) {
       ) : (
         <div>
           <button onClick={removeFile}>Remove file</button>
-          <button onClick={uploadFile}>Upload file</button>
+          <button onClick={() => refetch()}>Upload file</button>
         </div>
       )}
     </Box>
